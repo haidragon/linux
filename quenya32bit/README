@@ -1,0 +1,19 @@
+This README file is very limited since Quenya was never meant to be released.
+Although Quenya is very functional, it is mostly available for research purposes
+into the ELF format, and what it means to hack ELF binaries, and process images.
+To compile:
+
+cd libptrace;
+./configure; make
+
+cd libdasm-1.5; make
+
+Then in top directory of quenya type make.
+
+./quenya
+
+Once at command prompt type help
+
+elfmaster [at] bitlackeys [dot] org
+
+

@@ -1,0 +1,6 @@
+load <target> 
+unload <target>
+reloc <et_rel> <et_exec>
+addsect <target> <section-index> <section-name> <section-size> <section-type> <data/nodata>
+insert <target> <section-name> <et_rel> <offset>
+inject <target> <source> <startaddr> <endaddr> <method>
