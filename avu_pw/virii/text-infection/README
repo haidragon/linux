@@ -1,0 +1,16 @@
+TEXT Segment infector --
+
+gcc infect.c p.c -o infect
+./infect host 7
+
+7 is the minimum required length which is the number of bytes the movl $0x0, %eax; jmp *%eax code is.
+This code is necessary to jump back to the original entry point after the parasite has been executed.
+The parasite should be in p.c, and should end with the jump code that's already present. (You could
+also use push/ret). The return_entry_start variable marks the offset where the parasite should be patched
+with the memory address of the original entry point i.e
+
+\xb8\x00\x00\x00\x00\xff\xe0
+
+The offset would be 1, since we want to put the memory address in the 4 bytes of zeroes starting after xb8.
+
+<ryan@bitlackeys.com>

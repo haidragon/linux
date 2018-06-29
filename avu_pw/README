@@ -1,0 +1,59 @@
+*********************************************************************
+-= AVU (Anti-Virus UNIX) (C) 2009 Ryan O'Neill <ryan@bitlackeys.com>
+*********************************************************************
+
+What is AVU? -
+
+AVU is an AV Engine that focuses on ELF viruses/parasites and memory resident viruses/parasites.
+AVU uses heuristic analysis and also includes an ELF binary integrity checker.
+
+AVU scans for viruses that use the following ELF infection methods.
+
+TEXT SEGMENT PADDING INFECTION
+
+[TEXT]
+[PARASITE]
+[PADDING]
+[DATA]
+[SECTIONS]
+
+This type of infection increases the padding at the end of the text segment and inserts the parasite in this location.
+The infection requires heavy modifications to the ELF headers, and increase in file size by modulo a PAGE_SIZE. 
+Careful and precise measures must be taken to rewrite the ELF binary without the infection in order to keep the
+executable image, as well as the ELF headers intact. I designed a Linux virus that uses this method of infection
+so that I could test the disinfection process, which is successful.
+
+DATA SEGMENT INFECTION
+
+[TEXT]
+[DATA]
+[PARASITE]
+[SECTIONS]
+
+This type of infection inserts the parasite at the end of the data segment, this requires that the data segment 
+be extended by the parasite length, and because the .bss section ends the data segment (Which takes no file space)
+special care must be taken to leave room for it within memory ([data segment] phdr->p_memsz - phdr->p_filesz). 
+This type of infection can either create an extra section to account for the new parasite code, or it cannot. 
+My AV scanner is able to remove the infection in either case, whereas the latter is slightly more difficult. 
+I used several viruses by a very talented author that I will keep anonymous, to test the disinfection process.
+
+TEXT INFECTION 
+
+[PARASITE]
+[TEXT]
+[DATA]
+[SECTIONS]
+
+Type A.
+This type of infection inserts the parasite in front of the text segment, so the text segment is extended backwards. 
+In essence, the host is really being attached to the virus, so the virus has full control the entire time,
+Virus writers might find this nice because the entry point within the host never needs to be modified.
+
+Type B.
+This type of infection inserts the parasite before the text segment, then modifies the header offsets of the segments
+and sections that exist after the parasite to account for the parasite code. Like Type A. the entry point need not be patched.
+
+For type A. I used a virus written by an anonymous author and for type B. I wrote my own virus, to test the disinfection
+process.
+
+<ryan@bitlackeys.com>
