@@ -1,0 +1,146 @@
+#!/usr/bin/make
+
+CC := gcc
+CC_PIE := -shared
+CC_PIC := -fPIC -DPIC
+PAX_DEP := crt1S.o interp.o
+# command line option to override -pie usage
+ifeq ($(USE_PIE),y)
+# test works only for -fpie, not -pie, why?
+CC_PIE := $(shell if gcc -fpie -S -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo "-pie"; fi;)
+ifeq ($(CC_PIE),-pie)
+PAX_DEP =
+endif
+endif
+CC_SSP := $(shell if gcc -fno-stack-protector -S -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo "-fno-stack-protector"; fi;)
+
+OPT_FLAGS  := -O2
+# define stripping of binaries/libs here, or set these on make's commandline,
+# else you'll loose the chpax flags!
+LDFLAGS :=-lpthread
+SHLDFLAGS :=
+ifndef RUNDIR
+RUNDIR := /usr/lib/paxtest
+endif
+PAXCTL:=paxctl
+
+# The Hardened GCC compiler has stack protector on by default, this
+# could interfere with the results of this test.
+
+CFLAGS	:= $(OPT_FLAGS) -DRUNDIR=\"${RUNDIR}\" $(CC_SSP)
+
+EXEC_TESTS = anonmap execbss execdata execheap execstack
+MPROT_TESTS = mprotanon mprotbss mprotdata mprotheap mprotstack
+MPROTSH_TESTS = mprotshbss mprotshdata writetext
+RAND_TESTS = randamap randheap1 randheap2 randmain1 randmain2 randshlib randstack1 randstack2
+RET_TESTS = rettofunc1 rettofunc2
+RETX_TESTS = rettofunc1x rettofunc2x
+SHLIB_TESTS = shlibbss shlibdata
+
+TESTS = $(EXEC_TESTS) $(MPROT_TESTS) $(MPROTSH_TESTS) $(RAND_TESTS) $(RET_TESTS) $(RETX_TESTS) $(SHLIB_TESTS)
+
+UTILS=	getamap \
+	getheap1 \
+	getheap2 \
+	getmain1 \
+	getmain2 \
+	getshlib \
+	getstack1 \
+	getstack2
+
+SHLIBS=	shlibtest.so \
+	shlibtest2.so
+
+all: $(SHLIBS) $(TESTS) $(UTILS) paxtest
+
+clean:
+	-rm -f *.o *.s *~ core
+	-rm -f $(SHLIBS) $(TESTS) $(UTILS)
+	-rm -f paxtest paxtest.log a.out dumpspecs
+	-rm -f getheap?.c getmain?.c
+
+ifdef DESTDIR
+ifdef BINDIR
+ifdef RUNDIR
+install: all
+	mkdir -p $(DESTDIR)/$(RUNDIR)
+	cp $(SHLIBS) $(TESTS) $(UTILS) $(DESTDIR)/$(RUNDIR)
+	mkdir -p $(DESTDIR)/$(BINDIR)
+	cp paxtest $(DESTDIR)/$(BINDIR)
+	chmod 755 $(DESTDIR)/$(BINDIR)/paxtest
+endif
+endif
+endif
+
+paxtest: $(TESTS) genpaxtest
+	sh genpaxtest $(TESTS)
+
+.S.o:
+	$(CC) $(CFLAGS) $(CC_PIC) -o $@ -c $<
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(EXEC_TESTS) $(MPROT_TESTS) $(RET_TESTS): body.o $$@.o
+	$(CC) $(LDFLAGS) -o $@ $+
+	
+$(RAND_TESTS): randbody.o $$@.o
+	$(CC) $(LDFLAGS) -o $@ $+
+
+getamap: $$@.o
+	$(CC) $(LDFLAGS) -o $@ $<
+	
+# we create the getmain.c/getheap.c links to $@1.c/$@2.c, to use macros later
+#getheap1.c getheap2.c: getheap.c
+getheap2.c: getheap.c
+	rm -f $@
+	ln -s $< $@
+
+getmain1.c getmain2.c: getmain.c
+	rm -f $@
+	ln -sfn $< $@
+	
+# get heap1/main1 are built w/o PIC (it's default)
+# get heap2/main2 are built w/ PIC
+get%2.o: get%2.c
+	$(CC) $(CFLAGS) $(CC_PIC) -o $@ -c $<
+	
+# requires the PIC version (is this correct?)
+getheap1: getheap2.o
+	$(CC) $(LDFLAGS) -o $@ $<
+
+# requires the nonPIC version (is this correct?)
+getmain1: $$@.o
+	$(CC) $(LDFLAGS) -o $@ $<
+	$(PAXCTL) -SPRXM $@
+
+getheap2 getmain2: $(PAX_DEP) $$@.o
+	$(CC) $(LDFLAGS) $(CC_PIE) -o $@ $+
+
+getshlib: $$@.o
+	$(CC) $(LDFLAGS) -o $@ $< -ldl
+
+getstack1: getstack.o
+	$(CC) $(LDFLAGS) -o $@ $<
+	$(PAXCTL) -SRp $@
+
+getstack2: getstack.o
+	$(CC) $(LDFLAGS) -o $@ $<
+	# disable segmexec, kernel else overrides pageexec
+	$(PAXCTL) -PRs $@
+	
+$(MPROTSH_TESTS): body.o $$@.o shlibtest.so
+	$(CC) $(LDFLAGS) -o $@ $+
+
+$(RETX_TESTS): body.o $$@.o
+	$(CC) $(LDFLAGS) -o $@ $+
+	$(PAXCTL) -SPXM $@
+	
+shlib%.o: shlib%.c
+	$(CC) $(CFLAGS) $(CC_PIC) -o $@ -c $<
+
+shlib%.so: shlib%.o
+	$(CC) $(SHLDFLAGS) -shared -o $@ $<
+
+$(SHLIB_TESTS): body.o $$@.o $(SHLIBS)
+	$(CC) $(LDFLAGS) -o $@ $+ -ldl
+

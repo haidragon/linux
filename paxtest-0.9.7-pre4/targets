@@ -1,0 +1,9 @@
+Choose one of the following make targets:
+
+adamantix	Adamantix
+gentoo		Gentoo
+openbsd		OpenBSD
+generic		For other Linux distributions
+
+clean		Clean up
+

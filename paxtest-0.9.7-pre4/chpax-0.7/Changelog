@@ -1,0 +1,21 @@
+ *
+ * Nov 2002 : Added multi{options,files} cmdline, zeroflag, nicer output 
+ * (+ double output if flags are changed and -v is specified), more error 
+ * handling, more explicit error messages and return values
+ * 
+ * Jan 2003 : Packaging, Port to Sparc/ELF64 : flags now stand in e_ident[EI_PAX] and 
+ * e_ident[EI_PAX + 1], old chpax version is needed for clearing old flags .
+ *
+ * Feb 2003: Added alpha support.
+ *
+ * Mar 2003: Added parisc support.
+ *
+ * Apr 2003: Added ppc support.
+ *
+ * Oct 2003: Added amd64, ia64 and make install support, short format flags printout.
+ *
+ * Dec 2003: Added mips and mips64 support.
+ *
+ * Feb 2004: Added PT_PAX_FLAGS support.
+ *
+ * Jun 2004: Fixed elf.h include, uses glibc's version now, added ppc64 support.

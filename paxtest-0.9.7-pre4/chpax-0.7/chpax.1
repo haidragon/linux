@@ -1,0 +1,80 @@
+.\" -*- nroff -*-
+.\"
+.\" chpax.1
+.\"
+.\" This program was written by
+.\" The PaX Team <pageexec@freemail.hu>
+.\"
+.\" This manpage was created by:
+.\" Martin Krafft <madduck@debian.org<
+.\" 
+.\" The license of this manpage is "Do what you want, but do it right!"
+.\"
+.TH chpax 1 .\" "chpax Manual" "Feb 12, 2003"
+.SH NAME
+\fB chpax \fR - user-space utility to control PaX flags
+.SH SYNTAX 
+\fB chpax \fR [-PpEeMmRrXxSsvz] <FILE1> [<FILE2> ...]
+.SH DESCRIPTION
+\fBchpax\fR is a tool that allows PaX flags to be modified
+on a per-binary basis. PaX is part of common security-enhancing
+kernel patches, like GrSecurity. Your system needs to be
+running an appropriately patched kernel for this program to
+have any effect.
+.TP
+\fB-P\fR
+enforce paging based non-executable pages
+.TP
+\fB-p\fR
+do not enforce paging based non-executable pages
+.TP
+\fB-E\fR
+emulate trampolines
+.TP
+\fB-e\fR
+do not emulate trampolines
+.TP
+\fB-M\fR
+restrict mprotect()
+.TP
+\fB-m\fR
+do not restrict mprotect()
+.TP
+\fB-R\fR
+randomize mmap() base
+.TP
+\fB-r\fR
+do not randomize mmap() base
+.TP
+\fB-X\fR
+randomize ET_EXEC base
+.TP
+\fB-x\fR
+do not randomize ET_EXEC base
+.TP
+\fB-S\fR
+enforce segmentation based non-executable pages
+.TP
+\fB-s\fR
+do not enforce segmentation based non-executable pages
+.TP
+\fB-v\fR
+view current flag mask 
+.TP
+\fB-z\fR
+zero flag mask (next flags still apply)
+.SH CAVEATS
+\fBchpax\fR does not currently parse standard command line arguments. Only the
+first argument is parsed, and it must contain all of the above flags you
+wish to use. So, instead of, e.g., "-v -p -r" you have to use "-vpr".
+.SH AUTHOR
+Written by The PaX Team <pageexec@freemail.hu>
+.PP
+This manpage was written by Martin F. Krafft <madduck@debian.org>
+for the Debian GNU/Linux Distribution, but may be used by others.
+.SH "SEE ALSO"
+.BR gradm (1)
+.PP
+The PaX website: http://pax.grsecurity.net
+.PP
+The GrSecurity website: http://www.grsecurity.net

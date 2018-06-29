@@ -1,0 +1,207 @@
+Paxtest v0.9.7 README file
+
+Copyright (c)2004 by Peter Busser <peter@adamantix.org>
+This file has been released under the GNU GPL version 2 or later.
+
+
+History:
+-------
+When I started the Adamantix project, one of the first things I did was to add
+PaX functionality to the kernel. PaX is a process memory protection patch.
+Anything that happens outside the kernel on a UNIX system happens inside a
+process. There are many attacks on the Internet that try to corrupt the process
+memory, in order to make it do something for which it was not intended. One
+example of such an attack is the so called buffer overflow attack. This kind of
+attack is one of the most popular at this moment.
+
+PaX protects against such attacks. Or so the author claims. When I started to
+add PaX to Adamantix, almost nothing happened. A few libraries broke, but that
+was easy to fix, and that was it. I expected many programs to break. So I
+started to wonder: ``Does this patch really do anything?'' Instead of
+speculating, I decided to write a test suite. After some time, the first
+version of paxtest was ready. More functionality was added. With the addition
+of every test, it proved that PaX was working just fine. I decided to publish
+paxtest, because it can be useful for other people to test the functionality
+of the memory protection of their system(s).
+
+
+Compiling paxtest:
+-----------------
+Compiling paxtest should be quite straightforward. First unpack paxtest. Then
+cd into the directory. And then run one of the following:
+
+make adamantix		(to create Adamantix binaries)
+make gentoo		(to create Gentoo binaries)
+make generic		(to create binaries for other Linux distributions)
+
+(Type make to get the above list.)
+
+
+Running paxtest:
+---------------
+In order to run paxtest, type the following:
+
+./paxtest kiddie	(to run paxtest in script kiddie mode)
+
+or
+
+./paxtest blackhat	(to run paxtest in blackhat mode)
+
+This will create a file paxtest.log in the current directory.
+
+
+Kiddie and blackhat mode:
+------------------------
+Paxtest provides two modes. The first mode is the so called kiddie mode, which
+makes paxtest behave rather nicely. This simulates the level of sophistication
+displayed by script kiddies. Good results in this mode do not necessarily mean
+that the security level of your system is high.
+
+The second mode, the blackhat mode, makes paxtest use of a few tricks to try
+to get around the protection of the kernel. The attacks done by paxtest in this
+mode can be performed in real life by attackers too. But the level of
+sophistication is somewhat higher than those of the kiddie mode and the chance
+of success is somewhat lower. But there is still a realistic chance of success.
+
+People who are concerned about the security of their systems should look at
+the blackhat mode results.
+
+
+The tests:
+---------
+There are two types of tests in paxtest. First there are tests which try
+different ways to write and then run exploit code. The more different exploits
+are stopped, the better the protection provided by the system. Note that the
+tests simulate what an exploit could (and would) do, not what an application
+does normally. This is especially important in the mprotect tests because
+some people claim that normal applicatons do not do this - indeed, but that
+is not what these tests are about, they simulate exploits, not applications.
+
+Second, there is a number of tests that measure the randomisation of the
+system. Randomisation does not provide any security, but only makes it harder
+for the attacker to guess where to attack (it is in fact security through
+obscurity). It is like rearranging the furniture in a pitch dark room every
+time someone enters. The more random the furniture is placed, the more likely
+it is that someone stumbles over it. The same applies to randomisation in this
+context, randomisation makes it more likely that an attack does not succeed.
+In short: More random bits is better. Zero bits means: No randomisation.
+
+
+Executable anonymous mapping
+Executable bss
+Executable data
+Executable heap
+Executable stack
+
+	These tests try to write data to memory and then try to execute it as
+	if it was executable code. This is exactly what most buffer exploits
+	do. There are five tests, each test tests one specific memory area.
+
+Executable anonymous mapping (mprotect)
+Executable bss (mprotect)
+Executable data (mprotect)
+Executable heap (mprotect)
+Executable stack (mprotect)
+
+	These tests do the same as the previous tests. But now the test also
+	tries to disable the memory protection in the kernel using mprotect().
+	It changes the protection status of memory. An attacker can use it to
+	try to switch off memory protection and execute shellcode as usual.
+
+Executable shared library bss (mprotect)
+Executable shared library data (mprotect)
+
+	These tests try to overwrite two different data areas in a shared
+	library. After that, it tries to execute the data as if it was code.
+	Again, these tests try to switch off the memory protection using
+	mprotect().
+
+Anonymous mapping randomisation test
+
+	Anonymous mappings are used for dynamically allocating memory in a
+	program. This test tries to figure out the number of random bits used
+	when such an anonymous mapping is requested. More bits is better.
+
+Heap randomisation test (ET_EXEC)
+Heap randomisation test (ET_DYN)
+
+	The heap is used for allocating small chunks of memory in a program.
+	There there are two different types of executables, ET_EXEC (normal
+	executables) and ET_DYN (basically executable shared libraries). The
+	randomisation can depend on the kind of executable, therefore there
+	are two tests.
+
+	Most Linux distributions ship with ET_EXEC executables only. So for
+	those the ET_EXEC randomisation is the most relevant. Adamantix ships
+	with mostly ET_DYN executables, so the ET_EXEC randomisation is not
+	very relevant, but the ET_DYN randomisation is.
+
+	Normally ET_DYN randomisation is bigger than the ET_EXEC randomisation.
+
+Main executable randomisation (ET_EXEC)
+Main executable randomisation (ET_DYN)
+
+	Same here, two tests, because the two different types of executables
+	can have different randomisation.
+
+Shared library randomisation test
+
+	Shared libraries can be located at random addresses too, which is what
+	this test tries to find out.
+
+Stack randomisation test (SEGMEXEC)
+Stack randomisation test (PAGEEXEC)
+
+	The stack is used for storing intermediate data. It also contains
+	addresses that influence the way programs run. That combination makes
+	the stack a popular memory area for attacks. Randomisation makes it
+	harder though, which is what these test try to find out.
+
+Return to function (strcpy)
+Return to function (strcpy, RANDEXEC)
+Return to function (memcpy)
+Return to function (memcpy, RANDEXEC)
+
+	Return to function attacks are very nasty. These tests are hard to
+	stop by kernel patches, but they show that there you should not expect
+	perfect protection from this kind of security patches.
+
+Executable shared library bss
+Executable shared library data
+
+	These tests try to overwrite two different data areas in a shared
+	library. After that, it tries to execute the data as if it was code.
+
+Writable text segments
+
+	When an attacker can overwrite code, he can basically alter the
+	program while it runs. This test tries to do that.
+
+
+Perfect protection:
+------------------
+Perfect protection is not possible. That is also the reason why there are
+so called return to function tests in paxtest. PaX does not prevent return to
+function attacks. Neither do any of the other memory protection patches. But it
+is important that people who use kernel patches like PaX do not get a false
+sense of security. As the PaX documentation points out: There are three
+different classes of attacks, and at this moment PaX can only guarantee
+protection against one of them.
+
+
+Further reading:
+---------------
+PaX home page:
+http://pax.grsecurity.net/
+
+PaX mailing list:
+http://lists.adamantix.org/
+
+PaX documentation (also a thorough introduction into memory protection):
+http://pax.grsecurity.net/docs/
+
+An article I wrote about PaX has been published in Linux Magazine. The whole
+article is available on-line as PDF. It is not very technical, but describes
+what memory protection is and why it is important. It can be found here:
+http://www.linux-magazine.com/issue/40
+

@@ -1,0 +1,59 @@
+paxtest (0.9.7-1) stable; urgency=low
+  * Fixed some tests on OpenBSD and FreeBSD (thanks to paxtest@hunger.hu
+    and mux@freebsd.org)
+  * Fixed return address acquisition, still gcc specific
+  * Switched to paxctl on gentoo
+  * Fixed setting up LD_LIBRARY_PATH in genpaxtest (Peter S. Mazinger)
+  * Added uClibc support (Peter S. Mazinger)
+
+paxtest (0.9.6-1) stable; urgency=low
+
+  * Made the do_mprotect() call in body.c optional, thereby introducing two
+    modes: script kiddie mode (which does not perform the do_mprotect()) and
+    blackhat mode, which does.
+  * Added a README file
+  * Added Adamantix paxtest results
+  * Removed -etdyn from the Adamantix make file
+  * Replaced mprotect() in body.c with pthread calls (which eventually have
+    the same result)
+  * Added a nested function, to measure the effect of nested functions on the
+    level of protection.
+  * Added paxtest result from Gentoo hardened (thanks to Ned Ludd)
+  * Added a new Makefile for Gentoo (thanks to Ned Ludd)
+  * Fixed spelling errors (thanks to pageexec@freemail.hu)
+
+ -- Peter Busser <peter@devbox.adamantix.org>  Wed, 25 Feb 2004 20:24:53 +0200
+
+paxtest (0.9.5-1) unstable; urgency=low
+
+  * Fixed the shlibbss and shlibdata tests (pageexec@freemail.hu)
+  * Non-executable page tests expose incomplete implementations
+    (pageexec@freemail.hu)
+
+ -- Peter Busser <peter@adamantix.org>  Tue, 04 Nov 2003 16:37:26 +0200
+
+paxtest (0.9.4-1) unstable; urgency=low
+
+  * Fixed mprotanon (pageexec@freemail.hu)
+  * Fixed rettofunc[12] (pageexec@freemail.hu)
+  * Fixed shared library data/bss tests (pageexec@freemail.hu)
+  * Introduced return-to-libc detection as proof-of-concept
+    (pageexec@freemail.hu)
+
+ -- Peter Busser <peter@adamantix.org>  Tue, 22 Oct 2003 21:00:05 +0200
+
+paxtest (0.9.3-1) unstable; urgency=low
+
+  * Changed e-mail addresses in source files to peter@adamantix.org
+  * Added copyright message printing in the run script.
+  * Upgraded to chpax v0.5 (pageexec@freemail.hu)
+  * Split randheap in two parts, one as ET_EXEC and the other as ET_DYN
+
+ -- Peter Busser <peter@adamantix.org>  Sun, 12 Oct 2003 10:58:52 +0200
+
+paxtest (0.9.0-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Peter Busser <peter@trusteddebian.org>  Mon, 19 May 2003 13:44:39 +0200
+

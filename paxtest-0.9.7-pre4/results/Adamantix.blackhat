@@ -1,0 +1,33 @@
+PaXtest - Copyright(c) 2003,2004 by Peter Busser <peter@adamantix.org>
+Released under the GNU Public Licence version 2 or later
+
+Mode: blackhat
+Linux devbox 2.4.22-1-k7-sec #1 Mon Jan 26 02:12:39 CET 2004 i686 unknown
+
+Executable anonymous mapping             : Killed
+Executable bss                           : Killed
+Executable data                          : Killed
+Executable heap                          : Killed
+Executable stack                         : Killed
+Executable anonymous mapping (mprotect)  : Killed
+Executable bss (mprotect)                : Killed
+Executable data (mprotect)               : Killed
+Executable heap (mprotect)               : Killed
+Executable shared library bss (mprotect) : Killed
+Executable shared library data (mprotect): Killed
+Executable stack (mprotect)              : Killed
+Anonymous mapping randomisation test     : 16 bits (guessed)
+Heap randomisation test (ET_EXEC)        : 25 bits (guessed)
+Heap randomisation test (ET_DYN)         : 25 bits (guessed)
+Main executable randomisation (ET_EXEC)  : No randomisation
+Main executable randomisation (ET_DYN)   : 17 bits (guessed)
+Shared library randomisation test        : 16 bits (guessed)
+Stack randomisation test (SEGMEXEC)      : 23 bits (guessed)
+Stack randomisation test (PAGEEXEC)      : 24 bits (guessed)
+Return to function (strcpy)              : Vulnerable
+Return to function (strcpy, RANDEXEC)    : Vulnerable
+Return to function (memcpy)              : Vulnerable
+Return to function (memcpy, RANDEXEC)    : Vulnerable
+Executable shared library bss            : Killed
+Executable shared library data           : Killed
+Writable text segments                   : Killed

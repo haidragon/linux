@@ -1,0 +1,167 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Javier</firstname>">
+  <!ENTITY dhsurname   "<surname>Fernandez-Sanguino</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>November 8, 2003</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhemail     "<email>jfs@computer.org</email>">
+  <!ENTITY dhusername  "Javier Fernandez-Sanguino">
+  <!ENTITY dhucpackage "<refentrytitle>PAXTEST</refentrytitle>">
+  <!ENTITY dhpackage   "paxtest">
+
+  <!ENTITY debian      "<productname>Debian</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <author>
+      &dhfirstname;
+      &dhsurname;
+    </author>
+    <copyright>
+      <year>2003</year>
+      <holder>Peter Busser</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>program to test buffer overflow protection</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+
+      <arg><replaceable>logfile</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para><command>&dhpackage;</command> is a program that attempts to
+    test kernel enforcements over memory usage. Some attacks benefit
+    from kernels that do not impose limitations. For example, execution
+    in some memory segments makes buffer overflows possible. It is 
+    used as a regression test suite for PaX, but might be useful
+    to test other memory protection patches for the kernel.</para>
+
+    <para><command>&dhpackage;</command> runs a set of programs that
+    attempt to subvert memory usage. For example:
+    </para>
+    
+    <literallayout>
+Executable anonymous mapping             : Killed
+Executable bss                           : Killed
+Executable data                          : Killed
+Executable heap                          : Killed
+Executable stack                         : Killed
+Executable anonymous mapping (mprotect)  : Killed
+Executable bss (mprotect)                : Killed
+Executable data (mprotect)               : Killed
+Executable heap (mprotect)               : Killed
+Executable shared library bss (mprotect) : Killed
+Executable shared library data (mprotect): Killed
+Executable stack (mprotect)              : Killed
+Anonymous mapping randomisation test     : 16 bits (guessed)
+Heap randomisation test (ET_EXEC)        : 13 bits (guessed)
+Heap randomisation test (ET_DYN)         : 25 bits (guessed)
+Main executable randomisation (ET_EXEC)  : No randomisation
+Main executable randomisation (ET_DYN)   : 17 bits (guessed)
+Stack randomisation test (SEGMEXEC)      : 23 bits (guessed)
+Stack randomisation test (PAGEEXEC)      : 24 bits (guessed)
+Return to function (strcpy)              : Vulnerable
+Return to function (strcpy, RANDEXEC)    : Vulnerable
+Return to function (memcpy)              : Vulnerable
+Return to function (memcpy, RANDEXEC)    : Vulnerable
+Executable shared library bss            : Killed
+Executable shared library data           : Killed
+Writable text segments                   : Killed
+    </literallayout>
+    
+    <para>The <quote>Executable ...</quote> tests basically put an instruction 
+    in a place
+    that is supposed to be data (i.e. malloced data, C variable, etc.)
+    and tries to execute it. The <quote>(mprotect)</quote> tests try to trick
+    the kernel in marking this piece of memory as executable first.
+    Return to function tests overwrite the return address on the stack, 
+    these are hard to prevent from inside the kernel.  
+    The last test tries to overwrite memory which is marked as executable.
+    </para>
+
+    <para>A normal Linux kernel (unpatched to protect for buffer overflows)
+    will show all tests as Vulnerable and no stack
+    randomisation or 6 bits (due to stack colouring). In other words, 
+    on a normal Linux kernel you can execute any data inside a process's 
+    memory or overwrite any code at will.
+    </para>
+
+    <para>This manual page was written for the &debian; distribution
+      because the original program does not have a manual page.
+    </para>
+
+
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+
+    <para>This program takes only a single option: a file to which
+      log all the test results (by default it will log to stdin/stdout)
+    </para>
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>For more information see
+    <ulink url="http://pax.grsecurity.net/docs">PaX Documentation</ulink>.</para>
+
+  </refsect1>
+  <refsect1>
+    <title>AUTHOR</title>
+  
+    <para>&dhpackage; was written by Peter Busser.</para>
+
+    <para>This manual page was written by &dhusername; &dhemail; for
+      the &debian; system (but may be used by others) based on the
+      information in the source code and Peter Busser's comments
+      sent to public mailing lists.  Permission is
+      granted to copy, distribute and/or modify this document under
+      the terms of the <acronym>GNU</acronym> Public License, Version 2 
+      or any later version published by the Free
+      Software Foundation.</para>
+
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->
+
+

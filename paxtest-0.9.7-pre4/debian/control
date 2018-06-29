@@ -1,0 +1,24 @@
+Source: paxtest
+Section: main
+Priority: optional
+Maintainer: Peter Busser <peter@adamantix.org>
+Build-Depends: debhelper (>> 3.0.0), gcc, binutils
+Standards-Version: 3.5.2
+
+Package: paxtest
+Architecture: i386
+Depends: ${shlibs:Depends}
+Description: a-: Test suite for the PaX kernel patch
+ PaX is a Linux kernel patch which adds much stricter control on how memory
+ is being used by applications. A normal Linux kernel leaves the control to the
+ application and does not implement any enforcement. Especially buffer overflow
+ attacks benefit from the absense of kernel enforced memory control. PaX tries
+ to do its best to enforce this control of memory used by applications, thereby
+ making it harder to successfully exploit buffer overflows.
+ .
+ Paxtest provides a regression test suite that covers most (but not all)
+ of PaX functionality. It can also be used to test other memory protection
+ patches.
+ .
+ For more information about PaX, see http://pax.grsecurity.net/.
+

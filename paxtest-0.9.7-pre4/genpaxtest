@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+# Script to run all the PaX memory protection tests
+#
+# Copyright(c) 2003,2004 by Peter Busser <peter@adamantix.org>
+# This file has been released under the GNU Public Licence version 2 or later.
+# See the file COPYING for details.
+#
+
+echo $RUNDIR
+if [ "${RUNDIR}" = "" ]
+then
+	RUNDIR=.
+fi
+
+cat << __here__ > paxtest
+#!/bin/sh
+
+if [ \$# = 1 ]
+then
+	if [ "\$1" = "kiddie" ]
+	then
+		PAXTEST_MODE=0
+	elif [ "\$1" = "blackhat" ]
+	then
+		PAXTEST_MODE=1
+	else
+		echo "usage: paxtest [kiddie|blackhat]"
+		exit 1
+	fi
+else
+	echo "usage: paxtest [kiddie|blackhat]"
+	exit 1
+fi
+
+export PAXTEST_MODE
+
+if [ "\${LD_LIBRARY_PATH}" = "" ]
+then
+	LD_LIBRARY_PATH=${RUNDIR}
+else
+	LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:${RUNDIR}
+fi
+export LD_LIBRARY_PATH
+
+cat <<__end__ | tee paxtest.log
+PaXtest - Copyright(c) 2003,2004 by Peter Busser <peter@adamantix.org>
+Released under the GNU Public Licence version 2 or later
+
+__end__
+
+echo "Mode: \$1" >>paxtest.log
+uname -a >>paxtest.log
+echo >>paxtest.log
+
+echo 'Writing output to paxtest.log'
+echo 'It may take a while for the tests to complete'
+
+for i in $*
+do
+	${RUNDIR}/\$i
+done >>paxtest.log 2>&1
+
+echo "Test results:"
+cat paxtest.log
+
+echo
+
+__here__
+
+chmod 755 paxtest
+
+exit 0
+

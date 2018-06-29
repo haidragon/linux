@@ -1,0 +1,237 @@
+#!/usr/bin/make
+
+# tested with make-3.79.1/gcc-2.96 (shared) and make-3.80/gcc-3.3.2/3 (pie)
+# make-3.79.1 does not support $$@ as target requirement (works for make-3.80)
+
+# preliminaries:
+# Adamantix modifies the specs adding etexec/etdyn for ET_EXEC/ET_DYN binaries
+# Adamantix's behaviour is presumed (no answers from peter@adamantix)
+# Gentoo modifies the specs adding yet_dyn/pie|yet_exec/nopie to enable|disable ET_DYN binaries
+#
+# disable ET_DYN binary building explicitely, where needed by setting
+# Adamantix: etexec
+# Gentoo: nopie/yet_exec
+
+# gcc does not check correctly -y<something>, so we have to grep the specs file
+
+# Gentoo used this to have non ET_DYN behaviour
+# not working anymore w/ gcc-3.3.3-r1, since we do not know the defaults
+#GCC_SPCS := $(shell gcc -dumpspecs > dumpspecs)
+#CC := gcc -specs=dumpspecs
+
+CC := gcc
+CC_PIC := -fPIC -DPIC
+
+# Adamantix
+CC_PIE := $(shell if grep -q "etdyn" `gcc -print-file-name=specs` ; then echo "-etdyn"; fi)
+CC_ETEXEC := $(shell if grep -q "etexec" `gcc -print-file-name=specs` ; then echo "-etexec"; fi)
+
+# non Adamantix case
+ifneq ($(CC_ETEXEC),-etexec)
+
+SCRT_FILE := $(shell if test -r /usr/lib/crt1S.o; then echo "/usr/lib/crt1S.o"; fi)
+ifeq ($(SCRT_FILE),)
+SCRT_FILE := $(shell if test -r /usr/lib/Scrt1.o; then echo "/usr/lib/Scrt1.o"; fi)
+endif
+# we can use -pie only if /usr/lib/Scrt1.o exists
+ifneq ($(SCRT_FILE),)
+# test works only for -fpie, not -pie, why?
+CC_PIE := $(shell if gcc -fpie -S -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo "-pie"; fi)
+
+# Gentoo disabling ET_DYN
+ifeq ($(CC_PIE),-pie)
+CC_ETEXEC := $(shell if grep -q "\!nopie" `gcc -print-file-name=specs` ; then echo "-nopie"; fi)
+endif
+endif
+
+ifeq ($(CC_PIE),)
+# Gentoo creating ET_DYN (if defaulting to ET_EXEC)
+CC_PIE := $(shell if grep -q "yet_dyn" `gcc -print-file-name=specs` ; then echo "-yet_dyn"; fi)
+# Gentoo disabling ET_DYN (if defaulting to ET_DYN)
+CC_ETEXEC := $(shell if grep -q "yet_exec" `gcc -print-file-name=specs` ; then echo "-yet_exec"; fi)
+
+# generic case, if we do not have any reference in specs
+ifeq ($(CC_PIE),)
+# if we have an Scrt1.o file, use that instead of the locally built one
+# could someone test this on platforms, where Scrt1.o exists, but there
+# is no equivalent crt1S.S? At least it works for uClibc.
+ifeq ($(SCRT_FILE),)
+SCRT_FILE := crt1S.o
+endif
+
+CC_PIE := -shared
+PAX_DEP := $(SCRT_FILE) interp.o
+
+# end of generic
+endif
+
+# end of Gentoo
+endif
+
+# end of non-Adamantix case
+endif
+
+# check for stack-protector
+CC_SSP := $(shell if gcc -fno-stack-protector -S -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo "-fno-stack-protector"; fi)
+CC_SSP_ALL := $(shell if gcc -fno-stack-protector-all -S -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo "-fno-stack-protector-all"; fi)
+
+# check for installed binaries
+CHPAXBIN := $(shell if which chpax >/dev/null 2>&1 ; then echo chpax; fi)
+PAXCTLBIN := $(shell if which paxctl >/dev/null 2>&1 ; then echo paxctl; fi)
+# should somehow use this to see if we really need paxctl
+# list=`paxctl -qQv /sbin/paxctl 2>/dev/null`; if echo $list | grep -q "PaX flags" ; then echo paxctl; fi
+# instead we use both markings to have paxtest running correctly on all platforms
+
+ifneq ($(PAXCTLBIN),)
+DUMMY := $(shell echo '${PAXCTLBIN} $$*' > paxbin)
+endif
+
+OPT_FLAGS  := -O2
+PTHREAD := -lpthread
+# define stripping of binaries/libs here, or set these on make's commandline,
+# else you'll loose the chpax flags!
+LDFLAGS :=
+SHLDFLAGS :=
+ifndef RUNDIR
+RUNDIR := .
+endif
+
+# The Hardened GCC compiler has stack protector on by default, this
+# could interfere with the results of this test.
+
+CFLAGS	:= $(OPT_FLAGS) -DRUNDIR=\"${RUNDIR}\" $(CC_SSP) $(CC_SSP_ALL)
+
+EXEC_TESTS = anonmap execbss execdata execheap execstack
+MPROT_TESTS = mprotanon mprotbss mprotdata mprotheap mprotstack
+MPROTSH_TESTS = mprotshbss mprotshdata writetext
+RAND_TESTS = randamap randheap1 randheap2 randmain1 randmain2 randshlib randstack1 randstack2
+RET_TESTS = rettofunc1 rettofunc2
+RETX_TESTS = rettofunc1x rettofunc2x
+SHLIB_TESTS = shlibbss shlibdata
+
+TESTS = $(EXEC_TESTS) $(MPROT_TESTS) $(MPROTSH_TESTS) $(RAND_TESTS) $(RET_TESTS) $(RETX_TESTS) $(SHLIB_TESTS)
+
+UTILS=	getamap getheap1 getheap2 getmain1 getmain2 getshlib getstack1 getstack2
+
+SHLIBS=	shlibtest.so shlibtest2.so
+
+ifeq ($(CHPAXBIN),)
+CHPAXVER := 0.7
+CHPAX := chpax-$(CHPAXVER)
+CHPAXSRC := $(CHPAX)/aout.c $(CHPAX)/chpax.c $(CHPAX)/elf32.c $(CHPAX)/elf64.c $(CHPAX)/flags.c $(CHPAX)/io.c
+CHPAXBIN := ./chpax
+all: chpax $(SHLIBS) $(TESTS) $(UTILS) paxtest
+else
+all: $(SHLIBS) $(TESTS) $(UTILS) paxtest
+endif
+
+# we need the failure handling, for kernels not supporting EI_PAX
+DUMMY := $(shell echo '${CHPAXBIN} $$* 2>/dev/null ||:' >> paxbin; chmod +x paxbin)
+
+PAXBIN := ./paxbin
+DL := -ldl
+
+clean:
+	-rm -f *.o *.s *~ core
+	-rm -f $(TESTS) $(UTILS) $(SHLIBS)
+	-rm -f paxtest paxtest.log a.out dumpspecs paxbin
+
+ifdef DESTDIR
+ifdef BINDIR
+ifdef RUNDIR
+install: all
+	mkdir -p $(DESTDIR)/$(RUNDIR)
+	cp $(SHLIBS) $(TESTS) $(UTILS) $(DESTDIR)/$(RUNDIR)
+	mkdir -p $(DESTDIR)/$(BINDIR)
+	cp paxtest $(DESTDIR)/$(BINDIR)
+	chmod 755 $(DESTDIR)/$(BINDIR)/paxtest
+endif
+endif
+endif
+
+chpax: $(CHPAXSRC:.c=.o)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+paxtest: $(TESTS) genpaxtest
+	sh genpaxtest $(TESTS)
+
+.S.o:
+	$(CC) $(CFLAGS) $(CC_PIC) -o $@ -c $<
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(EXEC_TESTS) $(MPROT_TESTS): body.o
+	$(CC) $(CFLAGS) -o $@.o -c $@.c
+	$(CC) $(LDFLAGS) $(PTHREAD) -o $@ $< $@.o
+	
+$(RAND_TESTS): randbody.o
+	$(CC) $(CFLAGS) -o $@.o -c $@.c
+	$(CC) $(LDFLAGS) -o $@ $< $@.o
+
+getamap: getamap.o
+	$(CC) $(LDFLAGS) -o $@ $@.o
+	
+# get heap1/main1 are built w/o PIC
+get%1.o: get%.c
+	$(CC) $(CFLAGS) $(CC_ETEXEC) -o $@ -c $<
+
+# get heap2/main2 are built w/ PIC
+get%2.o: get%.c
+	$(CC) $(CFLAGS) $(CC_PIC) -o $@ -c $<
+	
+# Adamantix uses the PIC version (getheap2.o), not necessary for ET_EXEC
+# build as ET_EXEC (not in Adamantix's Makefile)
+getheap1: getheap1.o
+	$(CC) $(LDFLAGS) $(CC_ETEXEC) -o $@ $<
+
+getmain1: getmain1.o
+	$(CC) $(LDFLAGS) $(CC_ETEXEC) -o $@ $<
+	$(PAXBIN) -SPRXM $@
+
+getheap2 getmain2: $(PAX_DEP) getheap2.o getmain2.o
+	$(CC) $(LDFLAGS) $(CC_PIE) -o $@ $(PAX_DEP) $@.o || (echo -e "#!/bin/sh\necho $@ pie not implemented" > $@; chmod +x $@)
+
+getshlib: getshlib.o
+	$(CC) $(LDFLAGS) -o $@ $< $(DL)
+
+# ET_EXEC and usage of "m" is not confirmed (as in Gentoo patch)
+# Adamantix does not use it
+# Pax Team does not want "m" for getstack1/2
+getstack1: getstack.o
+	$(CC) $(LDFLAGS) -o $@ $<
+	$(PAXBIN) -SRp $@
+
+getstack2: getstack.o
+	$(CC) $(LDFLAGS) -o $@ $<
+	# disable segmexec, kernel else overrides pageexec
+	$(PAXBIN) -PRs $@
+	
+$(MPROTSH_TESTS): body.o shlibtest.so
+	$(CC) $(CFLAGS) -o $@.o -c $@.c
+	$(CC) $(LDFLAGS) $(PTHREAD) -o $@ $@.o $^
+
+# used for RANDEXEC'd binaries
+retbody.o: body.c
+	$(CC) $(CFLAGS) $(CC_ETEXEC) -o $@ -c $<
+
+# build as ET_EXEC (recommended by PaX Team, not really a requirement)
+$(RET_TESTS): retbody.o
+	$(CC) $(CFLAGS) $(CC_ETEXEC) -o $@.o -c $@.c
+	$(CC) $(LDFLAGS) $(CC_ETEXEC) $(PTHREAD) -o $@ $< $@.o
+
+# build as ET_EXEC (not in Adamantix's Makefile)
+$(RETX_TESTS): retbody.o
+	$(CC) $(CFLAGS) $(CC_ETEXEC) -o $@.o -c $@.c
+	$(CC) $(LDFLAGS) $(CC_ETEXEC) $(PTHREAD) -o $@ $< $@.o
+	$(PAXBIN) -SPXM $@
+	
+# should also shlibbss.o and shlibdata.o be built w/ PIC?
+# if yes, remove tes from target and dependency
+shlibtes%.o: shlibtes%.c
+	$(CC) $(CFLAGS) $(CC_PIC) -o $@ -c $<
+
+shlib%.so: shlib%.o
+	$(CC) $(SHLDFLAGS) -shared -o $@ $<
+
+$(SHLIB_TESTS): body.o $(SHLIBS) shlibbss.o shlibdata.o
+	$(CC) $(LDFLAGS) $(PTHREAD) -o $@ body.o $@.o $(SHLIBS) $(DL)

@@ -1,0 +1,11 @@
+
+			-----------------
+			CHPAX README FILE
+			-----------------
+
+As you can see, chpax has been partially rewritten . Since ELF64 is now 
+supported (so that we match the Linux-PAX/sparc64 needs), we had to start
+a modularization of the code .
+
+For all the technical details about the improvements, check the 
+Changelog file .
