@@ -1,0 +1,50 @@
+2014.08.30 PaX Team <pageexec@freemail.hu>
+	added support for files larger than 2G on 64 bit archs
+	see https://bugs.gentoo.org/show_bug.cgi?id=520198
+
+2014.05.04 PaX Team <pageexec@freemail.hu>
+	fixed handling of ELF files whose ELF/PT headers aren't covered by a PT_LOAD segment, e.g., memcheck-amd64-linux from valgrind
+	thanks to Mathias Krause <minipli@googlemail.com>
+
+2012.03.23 PaX Team <pageexec@freemail.hu>
+	fixed gentoo bug #408377
+	thanks to <wbrana@gmail.com> for reporting
+
+2012.02.19 PaX Team <pageexec@freemail.hu>
+	fixed EMUTRMAP typo
+	thanks to Francisco Blas Izquierdo Riera (klondike) <klondike@gentoo.org>
+
+2010.05.20 PaX Team <pageexec@freemail.hu>
+	introduced paxctl-elf.c
+
+2009.06.25 PaX Team <pageexec@freemail.hu>
+	changed macro functions into normal ones
+
+2007.04.16 PaX Team <pageexec@freemail.hu>
+	fixed section header offset handling in stripped binaries,
+	thanks to Ned Ludd <solar@gentoo.org>
+
+2006.12.12 PaX Team <pageexec@freemail.hu>
+	use /usr/bin/install for install target
+	macro'ize elf_modify_phdr to unify Elf32/Elf64 handling
+
+2006.07.22 PaX Team <pageexec@freemail.hu>
+	added program header extension (chpax is no longer neeeded),
+	thanks to Kevin F. Quinn <co@kevquinn.com> & Ned Ludd <solar@gentoo.org>
+
+2006.06.17 PaX Team <pageexec@freemail.hu>
+	fixed code for gcc 2.95, thanks to Ned Ludd <solar@gentoo.org>
+
+2006.04.29 PaX Team <pageexec@freemail.hu>
+	fixed compilation on systems where PT_GNU_STACK is not defined,
+	thanks to Ned Ludd <solar@gentoo.org>
+
+2005.05.29 PaX Team <pageexec@freemail.hu>
+	cleaned up error code reporting, thanks to Kevin F. Quinn <co@kevquinn.com>
+
+2005.05.03 PaX Team <pageexec@freemail.hu>
+	added -c option to convert PT_GNU_STACK into PT_PAX_FLAGS
+	minor typo fixes in the code/manpage
+
+2004.02.10 PaX Team <pageexec@freemail.hu>
+	initial release

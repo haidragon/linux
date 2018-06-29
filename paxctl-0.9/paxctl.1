@@ -1,0 +1,108 @@
+.TH paxctl 1 2012-02-19 "paxctl Manual" "PaX"
+.SH NAME
+\fBpaxctl\fR - user-space utility to control PaX flags
+.SH SYNTAX
+\fBpaxctl\fR <flags> <files>
+.SH DESCRIPTION
+\fBpaxctl\fR is a tool that allows PaX flags to be modified
+on a per-binary basis.  PaX is part of common security-enhancing
+kernel patches and secure distributions, such as GrSecurity and
+Hardened Gentoo, respectively.  Your system needs to be running
+a properly patched and configured kernel for this program to have
+any effect.
+.TP
+\fB-P\fR
+enforce paging based non-executable pages (PAGEEXEC)
+.TP
+\fB-p\fR
+do not enforce paging based non-executable pages (NOPAGEEXEC)
+.TP
+\fB-E\fR
+emulate trampolines (EMUTRAMP)
+.TP
+\fB-e\fR
+do not emulate trampolines (NOEMUTRAMP)
+.TP
+\fB-M\fR
+enforce secure memory protections (MPROTECT)
+.TP
+\fB-m\fR
+do not enforce secure memory protections (NOMPROTECT)
+.TP
+\fB-R\fR
+randomize memory regions (RANDMMAP)
+.TP
+\fB-r\fR
+do not randomize memory regions (NORANDMMAP)
+.TP
+\fB-X\fR
+randomize base address of normal (ET_EXEC) executables (RANDEXEC)
+.TP
+\fB-x\fR
+do not randomize base address of normal (ET_EXEC) executables (NORANDEXEC)
+.TP
+\fB-S\fR
+enforce segmentation based non-executable pages (SEGMEXEC)
+.TP
+\fB-s\fR
+do not enforce segmentation based non-executable pages (NOSEGMEXEC)
+.TP
+\fB-v\fR
+view flags
+.TP
+\fB-z\fR
+reset all flags (further flags still apply)
+.TP
+\fB-c\fR
+create the PT_PAX_FLAGS program header if it does not exist by
+converting the PT_GNU_STACK program header if it exists
+.TP
+\fB-C\fR
+create the PT_PAX_FLAGS program header if it does not exist by
+adding a new program header, if it is possible
+.TP
+\fB-q\fR
+suppress error messages
+.TP
+\fB-Q\fR
+report flags in short format
+.SH CAVEATS
+The old PaX flag location and control method have been obsoleted,
+if your kernel and binaries use it you have to use chpax(1) instead
+(it is recommended to use PT_PAX_FLAGS along with -c or -C however).
+
+Converting PT_GNU_STACK into PT_PAX_FLAGS means that the information
+in the former is destroyed, in particular you must make sure that
+the EMUTRAMP PaX option is properly set in the newly created PT_PAX_FLAGS.
+The secure way is to disable EMUTRAMP first and if PaX reports stack
+execution attempts from nested function trampolines then enable it.
+
+Note that the new PT_PAX_FLAGS is created in the same state that
+binutils/ld itself would produce (equivalent to -zex).
+
+Note that if you use both PT_PAX_FLAGS and the extended attribute PaX
+flags on a binary then they must be exactly the same (except for RANDEXEC).
+
+Note that RANDEXEC is no longer supported by PaX kernels since 2.6.13,
+the paxctl flags are simply ignored there.
+
+Note that paxctl does not make backup copies of the files it modifies.
+
+Note that paxctl is meant to work on the native architecture's binaries
+only, however it should work on foreign binaries as long as they have the
+same endianess as the native architecture (e.g., an i386 paxctl should
+work on amd64 or little-endian arm but not on big-endian mips binaries).
+.SH AUTHOR
+Written by The PaX Team <pageexec@freemail.hu>
+.PP
+This manpage was adapted from the chpax manpage written by Martin F. Krafft <madduck@debian.org>
+for the Debian GNU/Linux Distribution, but may be used by others.
+.SH "SEE ALSO"
+.BR chpax (1),
+.BR gradm (8)
+.PP
+PaX website: http://pax.grsecurity.net
+.PP
+GrSecurity website: http://www.grsecurity.net
+.PP
+Hardened Gentoo website: http://www.gentoo.org/proj/en/hardened
