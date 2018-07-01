@@ -1,0 +1,3 @@
+/Users/liuhailong/Downloads/skeksi_virus-master/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/liuhailong/Downloads/skeksi_virus-master/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/liuhailong/Downloads/skeksi_virus-master/cmake-build-debug/CMakeFiles/skeksi_virus_master.dir

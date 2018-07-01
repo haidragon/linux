@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/cc -g -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/skeksi_virus_master.dir/disinfect/disinfect.c.o CMakeFiles/skeksi_virus_master.dir/virus.c.o  -o skeksi_virus_master 
