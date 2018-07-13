@@ -1,0 +1,47 @@
+Ciao
+
+Ti mando la versione aggiornata di cymothoa.
+Ho fatto delle modifiche un po dappertutto cercando di migliorare
+il programma, ed ho paura di aver esagerato :D
+quindi ti prego di rivedere un po tutto il codice per
+assicurarsi che tutto va bene prima di mettere la cymothoa in subversion...
+
+Ho aggiunto la personalizzazione di interpreter.
+
+Ho modificato il testo di -S e -h, vedi se va bene...
+
+
+===[Shellcodei]===
+Ho trovato alcuni shellcode che secondo me meritano l'attenzione
+qui: http://www.shell-storm.org/
+Quili vogliamo aggiungere a cymothoa?
+
+chmod(//bin/sh ,04775); set sh +s - 31 bytes
+execve() of /sbin/iptables -F - 70 bytes
+execve of /sbin/ipchains -F -  70 bytes
+mkdir() & exit() - 36 bytes
+Audio (knock knock knock) via /dev/dsp+setreuid(0,0)+execve() - 566 bytes
+hence dropping a SUID root shell in /tmp - 126 bytes
+pacman -S <package> (default package: backdoor) - 64 bytes
+pacman -R <package> - 59 bytes
+execve(/sbin/halt,/sbin/halt) - 27 bytes
+disables shadowing - 42 bytes
+shared memory exec - 50 bytes
+break chroot execve /bin/sh - 80 bytes
+Password Authentication portbind port 64713/tcp - 166 bytes
+socket-proxy - 372 bytes
+cat /dev/urandom > /dev/console, no real profit just for kicks - 63 bytes
+HTTP/1.x GET, Downloads and JMP - 68 bytes+
+rm -rf / which attempts to block the process from being stopped - 132 bytes
+set system time to 0 & exit
+Write FS PHP Connect Back Utility Shellcode - 508 bytes
+iopl(3); asm(cli); while(1){} - 12 bytes
+Ifconfig eth0 down - 51 bytes
+append rsa key to /root/.ssh/authorized_keys2 - 295 bytes
+System Beep - 45 bytes
+kill snort - 151 bytes
+
+Che ne dici se proviamo di aggiungere la fork() agli shellcode che non ce l'hanno?
+Mi sembra un feature importante, ma forse non sempre puo servire?
+
+Puoi vedere un attimo perche ci da i problemi la fclose() ?
